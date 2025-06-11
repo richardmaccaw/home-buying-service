@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin, TrendingUp, Calculator } from "lucide-react";
 import { usePersistedState } from "@/hooks/usePersistedState";
+import Image from "next/image";
 
 export default function HomePage() {
   const router = useRouter();
@@ -31,10 +32,12 @@ export default function HomePage() {
     <>
       {/* Full Width Hero Image with Blur Effect - completely outside container */}
       <div className="relative w-full -mt-8 -mx-4 mb-8 overflow-hidden">
-        <img
+        <Image
           src="/images/hero-image.png"
           alt="Professional property analysis team"
+          fill
           className="w-full h-[60vh] object-cover"
+          priority
         />
         {/* Gradient overlay for blur effect at bottom */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"></div>

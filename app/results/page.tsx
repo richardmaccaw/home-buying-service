@@ -17,8 +17,6 @@ import { IndicesTable } from "@/components/property/IndicesTable";
 import { History } from "@/components/property/History";
 import { ListingDelta } from "@/components/property/ListingDelta";
 import { LocalArea } from "@/components/property/LocalArea";
-import { Costs } from "@/components/property/Costs";
-import { NextSteps } from "@/components/property/NextSteps";
 import { PropertyAnalysis } from "../components/property/PropertyAnalysis";
 
 function ResultsContent() {
@@ -86,8 +84,6 @@ function ResultsContent() {
               <History />
               <ListingDelta />
               <LocalArea />
-              <Costs />
-              <NextSteps />
             </div>
           </>
         )}
