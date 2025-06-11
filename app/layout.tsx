@@ -14,6 +14,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <title>AI Property Police - No Estate Agent Waffle, No Mercy</title>
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="shortcut icon" href="/images/favicon.ico" />
         <meta
           name="description"

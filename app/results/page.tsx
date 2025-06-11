@@ -81,9 +81,8 @@ function ResultsContent() {
             <div className="space-y-8">
               <PropertyAnalysis />
               <CurrentValue />
-              <IndicesTable />
               <History />
-            <TimeOnMarket />
+              <IndicesTable />
               <ListingDelta />
               <LocalArea />
             </div>
