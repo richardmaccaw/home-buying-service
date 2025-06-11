@@ -7,10 +7,7 @@ import { cn } from "@/utils/cn";
 
 interface Analysis {
   overallVerdict: string;
-  keyInsights: string[];
-  recommendations: string[];
-  confidence: number;
-  riskFactors: string[];
+  recommendation: "BUY" | "DON'T_BUY" | "NEUTRAL";
 }
 
 export function PropertyAnalysis() {
@@ -49,7 +46,7 @@ export function PropertyAnalysis() {
               <Brain className="h-5 w-5 text-orange-600 animate-pulse" />
             </div>
             <div>
-              <CardTitle className="text-lg">Ross Kemp&apos;s Property Verdict</CardTitle>
+              <CardTitle className="text-lg">Property Verdict</CardTitle>
               <CardDescription className="text-sm">Getting the brutal truth...</CardDescription>
             </div>
           </div>
@@ -68,13 +65,16 @@ export function PropertyAnalysis() {
   if (!analysis) return null;
 
   const getVerdictType = () => {
-    const lowerVerdict = analysis.overallVerdict.toLowerCase();
-    if (lowerVerdict.includes("buy") && !lowerVerdict.includes("don't")) {
-      return "positive";
-    } else if (lowerVerdict.includes("don't buy") || lowerVerdict.includes("avoid") || lowerVerdict.includes("walk away")) {
-      return "negative";
+    if (!analysis?.recommendation) return "neutral";
+    
+    switch (analysis.recommendation) {
+      case "BUY":
+        return "positive";
+      case "DON'T_BUY":
+        return "negative";
+      default:
+        return "neutral";
     }
-    return "neutral";
   };
 
   const verdictType = getVerdictType();
@@ -117,7 +117,7 @@ export function PropertyAnalysis() {
             )} />
           </div>
           <div className="flex-1">
-            <CardTitle className="text-lg">Ross Kemp&apos;s Property Verdict</CardTitle>
+            <CardTitle className="text-lg">Property Verdict</CardTitle>
             <CardDescription className="text-sm">The no-nonsense analysis you need</CardDescription>
           </div>
           {getVerdictIcon()}
@@ -125,95 +125,23 @@ export function PropertyAnalysis() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Main Verdict - Strava-style prominent section */}
-        <div className={cn(
-          "p-4 rounded-lg border",
-          verdictType === "positive" ? "bg-green-50/50 border-green-200" : 
-          verdictType === "negative" ? "bg-red-50/50 border-red-200" : "bg-yellow-50/50 border-yellow-200"
-        )}>
-          <div className="flex items-start gap-3">
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
-              verdictType === "positive" ? "bg-green-100" : 
-              verdictType === "negative" ? "bg-red-100" : "bg-yellow-100"
-            )}>
-              {verdictType === "positive" ? 
-                <TrendingUp className="h-4 w-4 text-green-600" /> :
-                verdictType === "negative" ? 
-                <TrendingDown className="h-4 w-4 text-red-600" /> :
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              }
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium leading-relaxed whitespace-pre-line">
-                {analysis.overallVerdict}
-              </p>
-            </div>
+        <div className="flex items-start gap-3">
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+            verdictType === "positive" ? "bg-green-100" : 
+            verdictType === "negative" ? "bg-red-100" : "bg-yellow-100"
+          )}>
+            {verdictType === "positive" ? 
+              <TrendingUp className="h-4 w-4 text-green-600" /> :
+              verdictType === "negative" ? 
+              <TrendingDown className="h-4 w-4 text-red-600" /> :
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            }
           </div>
-        </div>
-
-        {/* Insights Grid - Strava-style metrics */}
-        {analysis.keyInsights.length > 0 && (
-          <div>
-            <h3 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">
-              Key Insights
-            </h3>
-            <div className="space-y-2">
-              {analysis.keyInsights.map((insight, index) => (
-                <div key={index} className="flex items-start gap-2 p-2 rounded bg-green-50/30">
-                  <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-muted-foreground">{insight}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Risk Factors */}
-        {analysis.riskFactors.length > 0 && (
-          <div>
-            <h3 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-amber-500" />
-              Risk Factors
-            </h3>
-            <div className="space-y-2">
-              {analysis.riskFactors.map((risk, index) => (
-                <div key={index} className="flex items-start gap-2 p-2 rounded bg-amber-50/30">
-                  <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-muted-foreground">{risk}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Recommendations */}
-        <div>
-          <h3 className="font-semibold mb-3 text-sm uppercase tracking-wide text-muted-foreground">
-            Next Steps
-          </h3>
-          <div className="space-y-2">
-            {analysis.recommendations.map((rec, index) => (
-              <div key={index} className="flex items-start gap-2 p-2 rounded bg-blue-50/30">
-                <div className="w-4 h-4 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center mt-0.5 flex-shrink-0">
-                  {index + 1}
-                </div>
-                <span className="text-sm text-muted-foreground">{rec}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Confidence Footer - Strava-style */}
-        <div className="pt-4 border-t border-border">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Analysis Confidence</span>
-            <span className="font-medium">{Math.round(analysis.confidence * 100)}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-            <div 
-              className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-500"
-              style={{ width: `${analysis.confidence * 100}%` }}
-            />
+          <div className="flex-1">
+            <p className="text-sm font-medium leading-relaxed whitespace-pre-line">
+              {analysis.overallVerdict}
+            </p>
           </div>
         </div>
       </CardContent>

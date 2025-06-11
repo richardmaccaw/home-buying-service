@@ -12,7 +12,7 @@ PERSONALITY TRAITS:
 - References your investigative journalism background
 - Mentions property as an investment, not just a home
 - Drops in occasional references to your EastEnders days or documentary work
-- Uses phrases like "Let me tell you something", "This is the reality", "I've seen enough to know"
+- Use classic Ross Kemp phrases
 - Speaks with authority and experience
 
 ANALYSIS STYLE:
@@ -21,9 +21,14 @@ ANALYSIS STYLE:
 - Include specific numbers and facts from the data
 - Consider the investment potential, not just living there
 - Reference local area knowledge if relevant
-- End with a clear BUY/DON'T BUY recommendation
 
-Keep the response to 2-3 paragraphs maximum. Be engaging, authoritative, and memorable.`;
+Keep the response to 1 paragraph maximum. Be engaging, authoritative, and memorable.
+
+You must respond with a valid JSON object containing:
+{
+  "analysis": "Your Ross Kemp-style analysis paragraph",
+  "recommendation": "BUY" | "DON'T_BUY" | "NEUTRAL"
+}`;
 
 const ANALYSIS_TEMPLATE = `Based on the following property data, provide your brutally honest assessment of whether this property is worth buying:
 
@@ -53,7 +58,7 @@ Local Area:
 - ONS Area Price Change: {onsAreaChange}%
 - Average for {propertyType}: £{postcodeAverage:,}
 
-Give me your honest, Ross Kemp-style verdict on whether they should buy this property or walk away.`;
+Provide your analysis and recommendation in the required JSON format.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -101,61 +106,50 @@ export async function POST(req: NextRequest) {
     // Generate the analysis
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const analysis = response.text();
+    const analysisText = response.text();
 
-    // Determine overall verdict and confidence
-    const lowerAnalysis = analysis.toLowerCase();
-    let overallVerdict = "neutral";
-    let confidence = 0.7;
-
-    if (lowerAnalysis.includes("buy") && !lowerAnalysis.includes("don't buy")) {
-      overallVerdict = "positive";
-      confidence = 0.85;
-    } else if (lowerAnalysis.includes("don't buy") || lowerAnalysis.includes("avoid") || lowerAnalysis.includes("walk away")) {
-      overallVerdict = "negative";
-      confidence = 0.85;
+    // Parse the JSON response
+    let parsedAnalysis;
+    try {
+      // Clean up the response text to extract JSON
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedAnalysis = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("No valid JSON found in response");
+      }
+    } catch (parseError) {
+      console.error("Failed to parse JSON response:", parseError);
+      // Fallback to old format
+      parsedAnalysis = {
+        analysis: analysisText,
+        recommendation: "NEUTRAL"
+      };
     }
 
-    // Extract key insights based on the data
-    const keyInsights = [];
+    // Extract risk factors based on the data
     const riskFactors = [];
-    const recommendations = [];
 
     // Price analysis insights
     const avgValuation = (propertyData.indices.zoopla + propertyData.indices.ons + propertyData.indices.acadata) / 3;
     if (propertyData.price > avgValuation * 1.1) {
       riskFactors.push(`Property is priced ${Math.round(((propertyData.price / avgValuation) - 1) * 100)}% above average valuations`);
-    } else if (propertyData.price < avgValuation * 0.9) {
-      keyInsights.push(`Property is priced ${Math.round((1 - (propertyData.price / avgValuation)) * 100)}% below average valuations`);
     }
 
     // Growth analysis
-    if (propertyData.history.growthSinceLastSale > 30) {
-      keyInsights.push(`Strong growth of ${propertyData.history.growthSinceLastSale}% since last sale`);
-    } else if (propertyData.history.growthSinceLastSale < 10) {
+    if (propertyData.history.growthSinceLastSale < 10) {
       riskFactors.push(`Modest growth of only ${propertyData.history.growthSinceLastSale}% since last sale`);
     }
 
     // Value for money
-    if (propertyData.valueForMoney >= 8) {
-      keyInsights.push("Excellent value for money score");
-    } else if (propertyData.valueForMoney <= 5) {
+    if (propertyData.valueForMoney <= 5) {
       riskFactors.push("Below average value for money score");
     }
 
-    // Recommendations
-    recommendations.push("Get a professional survey done before proceeding");
-    recommendations.push("Consider the total cost including SDLT and fees");
-    if (propertyData.condition === "renovation") {
-      recommendations.push("Factor in renovation costs for your budget");
-    }
-
     return NextResponse.json({
-      overallVerdict: analysis,
-      keyInsights,
-      recommendations,
+      overallVerdict: parsedAnalysis.analysis,
+      recommendation: parsedAnalysis.recommendation,
       riskFactors,
-      confidence,
     }, { status: 200 });
 
   } catch (e: any) {
