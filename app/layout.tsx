@@ -1,14 +1,9 @@
 import "./globals.css";
 import { Public_Sans } from "next/font/google";
-import Link from "next/link";
 import { Toaster } from "@/components/ui/sonner";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 const publicSans = Public_Sans({ subsets: ["latin"] });
-
-const Logo = () => (
-  <div className="text-2xl font-bold text-brand">🏠 PropertySearch</div>
-);
 
 export default function RootLayout({
   children,
@@ -47,13 +42,6 @@ export default function RootLayout({
       <body className={publicSans.className}>
         <NuqsAdapter>
           <div className="min-h-screen bg-background text-foreground">
-            <header className="border-b border-border">
-              <div className="container mx-auto px-4 py-4">
-                <Link href="/" className="inline-block">
-                  <Logo />
-                </Link>
-              </div>
-            </header>
             <main className="container mx-auto px-4 py-8">{children}</main>
           </div>
           <Toaster />
