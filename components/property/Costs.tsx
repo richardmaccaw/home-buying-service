@@ -21,7 +21,7 @@ export function Costs() {
   };
 
   const formatPercent = (rate: number) => {
-    return `${rate.toFixed(2)}%`;
+    return `${(rate ?? 0).toFixed(2)}%`;
   };
 
   return (
@@ -71,9 +71,9 @@ export function Costs() {
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription>
           <strong>Top tip:</strong> First-time buyers may be eligible for
-          mortgage with the Equity Agent to reduce these costs to 5-10%. You'll
-          start paying interest only on 5-10% of the home price. To find out
-          more about this, fill out the buying budget tool below.
+          mortgage with the Equity Agent to reduce these costs to 5-10%.
+          You&apos;ll start paying interest only on 5-10% of the home price. To
+          find out more about this, fill out the buying budget tool below.
         </AlertDescription>
       </Alert>
 
@@ -107,7 +107,7 @@ export function Costs() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Assuming you'll live in this property and not own others
+                Assuming you&apos;ll live in this property and not own others
               </p>
             </div>
 
