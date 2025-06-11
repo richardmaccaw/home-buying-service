@@ -11,8 +11,7 @@ import { usePropertyData } from "@/hooks/usePropertyData";
 import { PropertyProvider } from "@/lib/context/PropertyContext";
 
 // Property components
-import { Header } from "@/components/property/Header";
-import { ImageGallery } from "@/components/property/ImageGallery";
+import { PropertyImageHeader } from "@/components/property/PropertyImageHeader";
 import { CurrentValue } from "@/components/property/CurrentValue";
 import { IndicesTable } from "@/components/property/IndicesTable";
 import { History } from "@/components/property/History";
@@ -78,18 +77,19 @@ function ResultsContent() {
             ))}
           </div>
         ) : (
-          <div className="space-y-8">
-            <Header />
-            <ImageGallery />
-            <PropertyAnalysis />
-            <CurrentValue />
-            <IndicesTable />
-            <History />
-            <ListingDelta />
-            <LocalArea />
-            <Costs />
-            <NextSteps />
-          </div>
+          <>
+            <PropertyImageHeader />
+            <div className="space-y-8">
+              <PropertyAnalysis />
+              <CurrentValue />
+              <IndicesTable />
+              <History />
+              <ListingDelta />
+              <LocalArea />
+              <Costs />
+              <NextSteps />
+            </div>
+          </>
         )}
       </div>
     </PropertyProvider>
