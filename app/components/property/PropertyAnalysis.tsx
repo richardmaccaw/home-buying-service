@@ -1,8 +1,13 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useProperty } from "@/lib/context/PropertyContext";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, TrendingUp, TrendingDown, AlertTriangle, Brain, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/utils/cn";
 
 interface Analysis {
@@ -41,14 +46,11 @@ export function PropertyAnalysis() {
     return (
       <Card className="border-2 border-orange-200/20 bg-gradient-to-br from-orange-50/5 to-red-50/5">
         <CardHeader className="pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-              <Brain className="h-5 w-5 text-orange-600 animate-pulse" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">Property Verdict</CardTitle>
-              <CardDescription className="text-sm">Getting the brutal truth...</CardDescription>
-            </div>
+          <div>
+            <CardTitle className="text-lg">Property Verdict</CardTitle>
+            <CardDescription className="text-sm">
+              Getting the brutal truth...
+            </CardDescription>
           </div>
         </CardHeader>
         <CardContent>
@@ -66,7 +68,7 @@ export function PropertyAnalysis() {
 
   const getVerdictType = () => {
     if (!analysis?.recommendation) return "neutral";
-    
+
     switch (analysis.recommendation) {
       case "BUY":
         return "positive";
@@ -78,17 +80,6 @@ export function PropertyAnalysis() {
   };
 
   const verdictType = getVerdictType();
-
-  const getVerdictIcon = () => {
-    switch (verdictType) {
-      case "positive":
-        return <CheckCircle2 className="h-6 w-6 text-green-500" />;
-      case "negative":
-        return <XCircle className="h-6 w-6 text-red-500" />;
-      default:
-        return <AlertTriangle className="h-6 w-6 text-yellow-500" />;
-    }
-  };
 
   const getVerdictColor = () => {
     switch (verdictType) {
@@ -103,40 +94,14 @@ export function PropertyAnalysis() {
 
   return (
     <Card className={cn("border-2", getVerdictColor())}>
-      <CardHeader className="pb-4">
-        <div className="flex items-center gap-3">
-          <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
-            verdictType === "positive" ? "bg-green-100" : 
-            verdictType === "negative" ? "bg-red-100" : "bg-yellow-100"
-          )}>
-            <Brain className={cn(
-              "h-5 w-5",
-              verdictType === "positive" ? "text-green-600" : 
-              verdictType === "negative" ? "text-red-600" : "text-yellow-600"
-            )} />
-          </div>
-          <div className="flex-1">
-            <CardTitle className="text-lg">Property Verdict</CardTitle>
-            <CardDescription className="text-sm">The no-nonsense analysis you need</CardDescription>
-          </div>
-          {getVerdictIcon()}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Main Verdict - Strava-style prominent section */}
-        <div className="flex items-start gap-3">
-          <div className={cn(
-            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
-            verdictType === "positive" ? "bg-green-100" : 
-            verdictType === "negative" ? "bg-red-100" : "bg-yellow-100"
-          )}>
-            {verdictType === "positive" ? 
-              <TrendingUp className="h-4 w-4 text-green-600" /> :
-              verdictType === "negative" ? 
-              <TrendingDown className="h-4 w-4 text-red-600" /> :
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
-            }
+      <CardContent className="space-y-6 pt-6">
+        <div className="flex items-center gap-4">
+          <div className="flex-shrink-0">
+            <img
+              src="/images/Ross.png"
+              alt="Ross"
+              className="w-28 h-40 object-cover rounded-lg"
+            />
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium leading-relaxed whitespace-pre-line">
@@ -147,4 +112,4 @@ export function PropertyAnalysis() {
       </CardContent>
     </Card>
   );
-} 
+}
