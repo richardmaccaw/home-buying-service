@@ -35,9 +35,7 @@ export default function HomePage() {
           UK Property <span className="text-brand">Analysis</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-          Get comprehensive insights for any UK property. Enter an address or
-          property listing URL to discover market data, valuations, and local
-          insights.
+          Get comprehensive insights for any UK property. Enter a Rightmove property URL to discover market data, valuations, and local insights.
         </p>
       </div>
 
@@ -49,7 +47,7 @@ export default function HomePage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Enter UK address or property listing URL"
+                placeholder="Enter Rightmove property URL (e.g., rightmove.co.uk/properties/123456789)"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -62,9 +60,16 @@ export default function HomePage() {
               disabled={!query.trim()}
               className="w-full h-12 text-lg bg-brand hover:bg-brand/90"
             >
-              Search Property
+              Analyze Property
             </Button>
           </form>
+          
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>How to use:</strong> Go to Rightmove, find a property you're interested in, and paste the URL here. 
+              Our AI will extract all property details and generate a comprehensive analysis report.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -112,12 +117,12 @@ export default function HomePage() {
 
       {/* Example Searches */}
       <div className="text-center space-y-4">
-        <p className="text-sm text-muted-foreground">Try searching for:</p>
+        <p className="text-sm text-muted-foreground">Example Rightmove URLs:</p>
         <div className="flex flex-wrap justify-center gap-2">
           {[
-            "Valley View, Bristol, BS39 5",
-            "SW1A 1AA",
-            "https://rightmove.co.uk/properties/...",
+            "https://www.rightmove.co.uk/properties/163007567",
+            "https://www.rightmove.co.uk/properties/147832156",
+            "https://www.rightmove.co.uk/properties/139876234",
           ].map((example) => (
             <Button
               key={example}
@@ -126,7 +131,7 @@ export default function HomePage() {
               onClick={() => setQuery(example)}
               className="text-xs"
             >
-              {example}
+              {example.replace('https://www.rightmove.co.uk/properties/', 'Property ')}
             </Button>
           ))}
         </div>
