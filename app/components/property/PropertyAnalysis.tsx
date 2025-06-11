@@ -7,6 +7,7 @@ import { cn } from "@/utils/cn";
 
 interface Analysis {
   overallVerdict: string;
+  recommendation: "BUY" | "DON'T_BUY" | "NEUTRAL";
 }
 
 export function PropertyAnalysis() {
@@ -64,13 +65,16 @@ export function PropertyAnalysis() {
   if (!analysis) return null;
 
   const getVerdictType = () => {
-    const lowerVerdict = analysis.overallVerdict.toLowerCase();
-    if (lowerVerdict.includes("buy") && !lowerVerdict.includes("don't")) {
-      return "positive";
-    } else if (lowerVerdict.includes("don't buy") || lowerVerdict.includes("avoid") || lowerVerdict.includes("walk away")) {
-      return "negative";
+    if (!analysis?.recommendation) return "neutral";
+    
+    switch (analysis.recommendation) {
+      case "BUY":
+        return "positive";
+      case "DON'T_BUY":
+        return "negative";
+      default:
+        return "neutral";
     }
-    return "neutral";
   };
 
   const verdictType = getVerdictType();
