@@ -83,6 +83,7 @@ function ResultsContent() {
               <CurrentValue />
               <IndicesTable />
               <History />
+              <TimeOnMarket />
               <ListingDelta />
               <LocalArea />
             </div>
