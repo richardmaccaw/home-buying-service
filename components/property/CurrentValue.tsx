@@ -67,7 +67,7 @@ export function CurrentValue() {
               className={`text-sm font-semibold ${percentageVsAverage > 0 ? "text-red-500" : "text-green-500"}`}
             >
               {percentageVsAverage > 0 ? "+" : ""}
-              {percentageVsAverage.toFixed(1)}%
+              {(percentageVsAverage ?? 0).toFixed(1)}%
             </span>
           </div>
 

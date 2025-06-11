@@ -61,7 +61,7 @@ export function LocalArea() {
             <h4 className="font-semibold">Bath and North East Somerset</h4>
           </div>
           <Badge variant="default" className="text-sm">
-            +{data.localArea.onsAreaChange.toFixed(1)}%
+            +{(data.localArea.onsAreaChange ?? 0).toFixed(1)}%
           </Badge>
           <p className="text-sm text-muted-foreground mt-1">
             Across the whole of the South West

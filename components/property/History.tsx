@@ -62,7 +62,7 @@ export function History() {
             <div>
               <p className="text-sm text-muted-foreground">Growth</p>
               <p className="text-lg font-semibold text-green-500">
-                +{data.history.growthSinceLastSale.toFixed(1)}%
+                +{(data.history.growthSinceLastSale ?? 0).toFixed(1)}%
               </p>
               <p className="text-sm text-muted-foreground">
                 +{formatPrice(data.price - data.history.lastSalePrice)}

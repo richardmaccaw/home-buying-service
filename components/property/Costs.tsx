@@ -21,7 +21,7 @@ export function Costs() {
   };
 
   const formatPercent = (rate: number) => {
-    return `${rate.toFixed(2)}%`;
+    return `${(rate ?? 0).toFixed(2)}%`;
   };
 
   return (

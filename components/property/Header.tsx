@@ -71,7 +71,7 @@ export function Header() {
               <span
                 className={`text-3xl font-bold ${getScoreColor(data.valueForMoney)}`}
               >
-                {data.valueForMoney.toFixed(1)}
+                {(data.valueForMoney ?? 0).toFixed(1)}
               </span>
               <span className="text-muted-foreground">/ 10</span>
             </div>

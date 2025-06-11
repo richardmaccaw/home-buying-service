@@ -52,8 +52,8 @@ export function ListingDelta() {
               variant={getChangeVariant(data.listingDelta.rightmove) as any}
               className="text-sm"
             >
-              {data.listingDelta.rightmove > 0 ? "+" : ""}
-              {data.listingDelta.rightmove.toFixed(1)}%
+              {(data.listingDelta.rightmove ?? 0) > 0 ? "+" : ""}
+              {(data.listingDelta.rightmove ?? 0).toFixed(1)}%
             </Badge>
             <p className="text-sm text-muted-foreground">
               Local market change since listing
@@ -69,8 +69,8 @@ export function ListingDelta() {
               variant={getChangeVariant(data.listingDelta.acadata) as any}
               className="text-sm"
             >
-              {data.listingDelta.acadata > 0 ? "+" : ""}
-              {data.listingDelta.acadata.toFixed(1)}%
+              {(data.listingDelta.acadata ?? 0) > 0 ? "+" : ""}
+              {(data.listingDelta.acadata ?? 0).toFixed(1)}%
             </Badge>
             <p className="text-sm text-muted-foreground">
               Regional market change since listing
