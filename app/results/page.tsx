@@ -19,6 +19,7 @@ import { ListingDelta } from "@/components/property/ListingDelta";
 import { LocalArea } from "@/components/property/LocalArea";
 import { Costs } from "@/components/property/Costs";
 import { NextSteps } from "@/components/property/NextSteps";
+import { PropertyAnalysis } from "../components/property/PropertyAnalysis";
 
 function ResultsContent() {
   const searchParams = useSearchParams();
@@ -78,6 +79,7 @@ function ResultsContent() {
         ) : (
           <div className="space-y-8">
             <Header />
+            <PropertyAnalysis />
             <CurrentValue />
             <IndicesTable />
             <History />
