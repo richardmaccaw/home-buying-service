@@ -12,7 +12,7 @@ export default function PropertyAnalysisPage() {
             <a href="https://js.langchain.com/" target="_blank">
               LangChain.js
             </a>{" "}
-            and Google's{" "}
+            and Google&apos;s{" "}
             <a href="https://ai.google.dev/gemini-api/docs" target="_blank">
               Gemini API
             </a>{" "}
@@ -36,8 +36,8 @@ export default function PropertyAnalysisPage() {
         <li className="hidden text-l md:block">
           📊
           <span className="ml-2">
-            The response includes calculated values like SDLT, mortgage payments,
-            price per sqm, and market estimates.
+            The response includes calculated values like SDLT, mortgage
+            payments, price per sqm, and market estimates.
           </span>
         </li>
         <li className="hidden text-l md:block">
