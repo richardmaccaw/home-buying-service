@@ -94,7 +94,37 @@ async function scrapeRightmovePage(url: string): Promise<string> {
       '[data-testid="property-features"]',
       '.property-features'
     ];
+
+    const addressSelectors = [
+      'h1',  // Main heading is usually the address
+      '[data-testid="address"]',
+      '[class*="address"]',
+      '.property-address',
+      '.property-header h1',
+      '.property-title',
+      'h1:not(:contains("£"))',  // h1 that doesn't contain price
+      '[data-testid="property-address"]'
+    ];
     
+    // Extract address information first
+    for (const selector of addressSelectors) {
+      const addressElement = $(selector);
+      if (addressElement.length > 0) {
+        const addressText = addressElement.text().trim();
+        // Check if this looks like an address (contains letters and not just price)
+        if (addressText && 
+            !addressText.includes('£') && 
+            addressText.length > 5 &&
+            /[a-zA-Z]/.test(addressText) &&
+            !addressText.toLowerCase().includes('rightmove') &&
+            !addressText.toLowerCase().includes('property') &&
+            !addressText.toLowerCase().includes('for sale')) {
+          extractedText += `Address: ${addressText}\n`;
+          break;
+        }
+      }
+    }
+
     // Extract price information
     for (const selector of priceSelectors) {
       const priceElement = $(selector);
@@ -229,7 +259,7 @@ Property Content:
 {content}
 
 Please analyze the content and extract the following information:
-1. Address - full property address
+1. Address - full property address (look for street name, area, postcode format like "Main Street, Tiddington, CV37")
 2. Price - property price in GBP (numerical value only, no £ symbol)
 3. Square meters - if only sq ft is available, convert to sq m (1 sq ft = 0.092903 sq m)
 4. Bedrooms - number of bedrooms (look for patterns like "BEDROOMS: 2", "Two Bedrooms", "2 bedroom", "2 bed")
@@ -438,6 +468,7 @@ export async function POST(req: NextRequest) {
       extractedData = JSON.parse(text);
     } catch (e) {
       // If parsing fails, try to extract basic information from scraped content
+      const addressMatch = scrapedContent.match(/Address:\s*(.+)/i);
       const priceMatch = scrapedContent.match(/£([\d,]+)/);
       const sqftMatch = scrapedContent.match(/(\d+[\s,]*)\s*sq\s*ft/i);
       const sqmMatch = scrapedContent.match(/(\d+)\s*(sq\s*m|sqm)/i);
@@ -517,16 +548,16 @@ export async function POST(req: NextRequest) {
         sqm = Math.round(parseInt(sqftMatch[1].replace(/,/g, '')) * 0.092903);
       }
       
-              extractedData = {
-          address: "Address extraction failed",
-          price: priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : null,
-          square_meters: sqm,
-          bedrooms: bedrooms,
-          bathrooms: bathrooms,
-          property_type: null,
-          tenure: null,
-          condition: null
-        };
+                    extractedData = {
+        address: addressMatch ? addressMatch[1].trim() : "Address extraction failed",
+        price: priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : null,
+        square_meters: sqm,
+        bedrooms: bedrooms,
+        bathrooms: bathrooms,
+        property_type: null,
+        tenure: null,
+        condition: null
+      };
     }
 
     // Build full PropertyData object
