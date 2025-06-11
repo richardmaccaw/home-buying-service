@@ -46,8 +46,8 @@ export function CurrentValue() {
     }
   };
 
-  // Mock area average for comparison
-  const areaAverage = 3000; // £3000/m²
+  // Local average price per m²
+  const areaAverage = data.localArea.areaAverage ?? 3000;
   const percentageVsAverage =
     ((data.pricePerSqM - areaAverage) / areaAverage) * 100;
 
