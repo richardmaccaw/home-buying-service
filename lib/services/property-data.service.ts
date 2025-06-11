@@ -61,6 +61,7 @@ export class PropertyDataService {
       localArea: {
         onsAreaChange: 10.0,
         recentSales: [],
+        areaAverage: 3000,
         postcodeAverage: {
           detached: Math.round((extractedData.price || 0) * 1.5),
           semiDetached: Math.round((extractedData.price || 0) * 1.2),

@@ -79,6 +79,7 @@ export const LocalAreaSchema = z.object({
     required_error: "ONS area change percentage is required",
   }),
   recentSales: z.array(RecentSaleSchema),
+  areaAverage: z.number().positive().optional(),
   postcodeAverage: PostcodeAverageSchema,
   priceHistory: z
     .array(PriceHistoryEntrySchema)
@@ -242,6 +243,7 @@ export const samplePropertyData: PropertyData = {
         distance: "4 doors down",
       },
     ],
+    areaAverage: 7500,
     postcodeAverage: {
       detached: 1200000,
       semiDetached: 850000,

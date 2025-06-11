@@ -3,14 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useEffect, useState } from "react";
 import { useProperty } from "@/lib/context/PropertyContext";
 
 export function CurrentValue() {
   const { data, loading } = useProperty();
-
-  if (loading || !data) {
-    return null;
-  }
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-GB", {
@@ -46,10 +43,43 @@ export function CurrentValue() {
     }
   };
 
-  // Mock area average for comparison
-  const areaAverage = 3000; // £3000/m²
-  const percentageVsAverage =
-    ((data.pricePerSqM - areaAverage) / areaAverage) * 100;
+  // Local average price per m²
+  const [areaAverage, setAreaAverage] = useState<number | null>(
+    data?.localArea.areaAverage ?? null,
+  );
+
+  useEffect(() => {
+    if (!data) return;
+    if (data.localArea.areaAverage) {
+      setAreaAverage(data.localArea.areaAverage);
+      return;
+    }
+
+    const match = data.address.match(/[A-Z]{1,2}\d{1,2}[A-Z]?/i);
+    if (!match) return;
+
+    fetch('/api/area-average', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postcode: match[0] }),
+    })
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((json) => {
+        if (typeof json.areaAverage === 'number') {
+          setAreaAverage(json.areaAverage);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch area average', err);
+      });
+  }, [data]);
+
+  if (loading || !data) {
+    return null;
+  }
+
+  const areaAvg = areaAverage ?? 3000;
+  const percentageVsAverage = ((data.pricePerSqM - areaAvg) / areaAvg) * 100;
 
   return (
     <Card>
@@ -80,14 +110,14 @@ export function CurrentValue() {
             </div>
             <Progress
               value={Math.min(
-                (data.pricePerSqM / (areaAverage * 1.5)) * 100,
+                (data.pricePerSqM / (areaAvg * 1.5)) * 100,
                 100,
               )}
               className="h-2"
             />
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Area average</span>
-              <span>{formatPrice(areaAverage)}/m²</span>
+              <span>{formatPrice(areaAvg)}/m²</span>
             </div>
           </div>
         </div>
