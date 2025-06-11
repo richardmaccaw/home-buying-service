@@ -9,6 +9,7 @@ import { useProperty } from "@/lib/context/PropertyContext";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/utils/cn";
+import Image from "next/image";
 
 interface Analysis {
   overallVerdict: string;
@@ -97,9 +98,11 @@ export function PropertyAnalysis() {
       <CardContent className="space-y-6 pt-6">
         <div className="flex items-center gap-4">
           <div className="flex-shrink-0">
-            <img
+            <Image
               src="/images/Ross.png"
               alt="Ross"
+              width={112}
+              height={160}
               className="w-28 h-40 object-cover rounded-lg"
             />
           </div>
