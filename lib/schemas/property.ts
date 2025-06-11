@@ -139,6 +139,9 @@ export const PropertyDataSchema = z.object({
   costs: PropertyCostsSchema,
   mortgage: MortgageDataSchema,
 
+  // Images
+  images: z.array(z.string().url("Invalid image URL")).optional(),
+
   // Metadata
   lastUpdated: z
     .string()
@@ -291,6 +294,11 @@ export const samplePropertyData: PropertyData = {
       },
     ],
   },
+
+  images: [
+    "https://media.rightmove.co.uk/property/123456789/example1.jpg",
+    "https://media.rightmove.co.uk/property/123456789/example2.jpg"
+  ],
 
   lastUpdated: "2024-01-20T15:30:00Z",
   dataSource: "aggregated",
