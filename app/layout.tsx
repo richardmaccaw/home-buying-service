@@ -13,29 +13,29 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        <title>Property Search - UK Home Analysis</title>
+        <title>AI Property Police - No Estate Agent Waffle, No Mercy</title>
         <link rel="shortcut icon" href="/images/favicon.ico" />
         <meta
           name="description"
-          content="Comprehensive property analysis for UK homes - get instant valuations, local insights, and market data."
+          content="Our crack squad of AI Property Police combs through the photos, floorplans and sold-price data, exposing hidden flaws and telling you what the place is really worth—no estate-agent waffle, no mercy."
         />
         <meta
           property="og:title"
-          content="Property Search - UK Home Analysis"
+          content="AI Property Police - No Estate Agent Waffle, No Mercy"
         />
         <meta
           property="og:description"
-          content="Comprehensive property analysis for UK homes - get instant valuations, local insights, and market data."
+          content="Our crack squad of AI Property Police combs through the photos, floorplans and sold-price data, exposing hidden flaws and telling you what the place is really worth—no estate-agent waffle, no mercy."
         />
         <meta property="og:image" content="/images/og-image.png" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
           name="twitter:title"
-          content="Property Search - UK Home Analysis"
+          content="AI Property Police - No Estate Agent Waffle, No Mercy"
         />
         <meta
           name="twitter:description"
-          content="Comprehensive property analysis for UK homes - get instant valuations, local insights, and market data."
+          content="Our crack squad of AI Property Police combs through the photos, floorplans and sold-price data, exposing hidden flaws and telling you what the place is really worth—no estate-agent waffle, no mercy."
         />
         <meta name="twitter:image" content="/images/og-image.png" />
       </head>
