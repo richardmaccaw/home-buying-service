@@ -109,7 +109,7 @@ export function History() {
 
             <ChartContainer
               config={chartConfig}
-              className="max-h-[500px] w-full"
+              className="max-h-[300px] w-full"
             >
               <LineChart
                 accessibilityLayer
@@ -181,47 +181,6 @@ export function History() {
               {totalGrowth >= 0 ? "positive" : "negative"} growth of{" "}
               {Math.abs(totalGrowth).toFixed(1)}%.
             </p>
-          </div>
-        )}
-
-        {/* Price reductions */}
-        {data.history.priceReductions.length > 0 && (
-          <div>
-            <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <Minus className="h-5 w-5 text-red-500" />
-              Price reductions
-            </h4>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Total reduction:{" "}
-                <span className="font-semibold text-red-500">
-                  {formatPrice(totalReduction)}
-                </span>
-              </p>
-              <div className="space-y-2">
-                {data.history.priceReductions.map((reduction, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center p-3 border rounded-lg"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {formatDate(reduction.date)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Reduced by {formatPrice(reduction.amount)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">
-                        {formatPrice(reduction.newPrice)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">New price</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         )}
       </CardContent>
