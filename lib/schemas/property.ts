@@ -122,6 +122,8 @@ export const PropertyDataSchema = z.object({
     .min(0)
     .max(10, "Value for money score must be between 0 and 10"),
   condition: PropertyCondition,
+  listingDate: z.string().optional(),
+  priceReductionDate: z.string().optional(),
 
   // External valuations
   indices: PriceIndicesSchema,
