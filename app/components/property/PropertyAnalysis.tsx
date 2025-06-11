@@ -7,6 +7,7 @@ import { cn } from "@/utils/cn";
 
 interface Analysis {
   overallVerdict: string;
+  recommendation: "BUY" | "DON'T_BUY" | "NEUTRAL";
 }
 
 export function PropertyAnalysis() {
@@ -64,13 +65,16 @@ export function PropertyAnalysis() {
   if (!analysis) return null;
 
   const getVerdictType = () => {
-    const lowerVerdict = analysis.overallVerdict.toLowerCase();
-    if (lowerVerdict.includes("buy") && !lowerVerdict.includes("don't")) {
-      return "positive";
-    } else if (lowerVerdict.includes("don't buy") || lowerVerdict.includes("avoid") || lowerVerdict.includes("walk away")) {
-      return "negative";
+    if (!analysis?.recommendation) return "neutral";
+    
+    switch (analysis.recommendation) {
+      case "BUY":
+        return "positive";
+      case "DON'T_BUY":
+        return "negative";
+      default:
+        return "neutral";
     }
-    return "neutral";
   };
 
   const verdictType = getVerdictType();
@@ -121,29 +125,23 @@ export function PropertyAnalysis() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Main Verdict - Strava-style prominent section */}
-        <div className={cn(
-          "p-4 rounded-lg border",
-          verdictType === "positive" ? "bg-green-50/50 border-green-200" : 
-          verdictType === "negative" ? "bg-red-50/50 border-red-200" : "bg-yellow-50/50 border-yellow-200"
-        )}>
-          <div className="flex items-start gap-3">
-            <div className={cn(
-              "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
-              verdictType === "positive" ? "bg-green-100" : 
-              verdictType === "negative" ? "bg-red-100" : "bg-yellow-100"
-            )}>
-              {verdictType === "positive" ? 
-                <TrendingUp className="h-4 w-4 text-green-600" /> :
-                verdictType === "negative" ? 
-                <TrendingDown className="h-4 w-4 text-red-600" /> :
-                <AlertTriangle className="h-4 w-4 text-yellow-600" />
-              }
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium leading-relaxed whitespace-pre-line">
-                {analysis.overallVerdict}
-              </p>
-            </div>
+        <div className="flex items-start gap-3">
+          <div className={cn(
+            "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
+            verdictType === "positive" ? "bg-green-100" : 
+            verdictType === "negative" ? "bg-red-100" : "bg-yellow-100"
+          )}>
+            {verdictType === "positive" ? 
+              <TrendingUp className="h-4 w-4 text-green-600" /> :
+              verdictType === "negative" ? 
+              <TrendingDown className="h-4 w-4 text-red-600" /> :
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            }
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-medium leading-relaxed whitespace-pre-line">
+              {analysis.overallVerdict}
+            </p>
           </div>
         </div>
       </CardContent>

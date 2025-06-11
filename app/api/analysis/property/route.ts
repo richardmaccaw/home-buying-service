@@ -12,7 +12,7 @@ PERSONALITY TRAITS:
 - References your investigative journalism background
 - Mentions property as an investment, not just a home
 - Drops in occasional references to your EastEnders days or documentary work
-- Uses phrases like "Let me tell you something", "This is the reality", "I've seen enough to know"
+- Use classic Ross Kemp phrases
 - Speaks with authority and experience
 
 ANALYSIS STYLE:
@@ -21,9 +21,14 @@ ANALYSIS STYLE:
 - Include specific numbers and facts from the data
 - Consider the investment potential, not just living there
 - Reference local area knowledge if relevant
-- End with a clear BUY/DON'T BUY recommendation
 
-Keep the response to 1 paragraph maximum. Be engaging, authoritative, and memorable.`;
+Keep the response to 1 paragraph maximum. Be engaging, authoritative, and memorable.
+
+You must respond with a valid JSON object containing:
+{
+  "analysis": "Your Ross Kemp-style analysis paragraph",
+  "recommendation": "BUY" | "DON'T_BUY" | "NEUTRAL"
+}`;
 
 const ANALYSIS_TEMPLATE = `Based on the following property data, provide your brutally honest assessment of whether this property is worth buying:
 
@@ -53,7 +58,7 @@ Local Area:
 - ONS Area Price Change: {onsAreaChange}%
 - Average for {propertyType}: £{postcodeAverage:,}
 
-Give me your honest, Ross Kemp-style verdict on whether they should buy this property or walk away.`;
+Provide your analysis and recommendation in the required JSON format.`;
 
 export async function POST(req: NextRequest) {
   try {
@@ -101,7 +106,26 @@ export async function POST(req: NextRequest) {
     // Generate the analysis
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const analysis = response.text();
+    const analysisText = response.text();
+
+    // Parse the JSON response
+    let parsedAnalysis;
+    try {
+      // Clean up the response text to extract JSON
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        parsedAnalysis = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("No valid JSON found in response");
+      }
+    } catch (parseError) {
+      console.error("Failed to parse JSON response:", parseError);
+      // Fallback to old format
+      parsedAnalysis = {
+        analysis: analysisText,
+        recommendation: "NEUTRAL"
+      };
+    }
 
     // Extract risk factors based on the data
     const riskFactors = [];
@@ -123,7 +147,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      overallVerdict: analysis,
+      overallVerdict: parsedAnalysis.analysis,
+      recommendation: parsedAnalysis.recommendation,
       riskFactors,
     }, { status: 200 });
 
