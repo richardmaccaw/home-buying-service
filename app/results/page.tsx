@@ -12,6 +12,7 @@ import { PropertyProvider } from "@/lib/context/PropertyContext";
 
 // Property components
 import { Header } from "@/components/property/Header";
+import { ImageGallery } from "@/components/property/ImageGallery";
 import { CurrentValue } from "@/components/property/CurrentValue";
 import { IndicesTable } from "@/components/property/IndicesTable";
 import { History } from "@/components/property/History";
@@ -79,6 +80,7 @@ function ResultsContent() {
         ) : (
           <div className="space-y-8">
             <Header />
+            <ImageGallery />
             <PropertyAnalysis />
             <CurrentValue />
             <IndicesTable />

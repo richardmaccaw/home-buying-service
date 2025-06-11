@@ -94,7 +94,71 @@ async function scrapeRightmovePage(url: string): Promise<string> {
       '[data-testid="property-features"]',
       '.property-features'
     ];
+
+    const addressSelectors = [
+      'h1',  // Main heading is usually the address
+      '[data-testid="address"]',
+      '[class*="address"]',
+      '.property-address',
+      '.property-header h1',
+      '.property-title',
+      'h1:not(:contains("£"))',  // h1 that doesn't contain price
+      '[data-testid="property-address"]'
+    ];
+
+    const imageSelectors = [
+      // Rightmove-specific main gallery selectors (avoid thumbnails)
+      '[data-testid="gallery-main"] img',
+      '[data-testid="media-viewer-main"] img', 
+      '[class*="gallery-main"] img',
+      '[class*="media-main"] img',
+      '[data-testid="gallery"]:not([class*="thumb"]) img',
+      '[data-testid="media-viewer"]:not([class*="thumb"]) img', 
+      '[class*="gallery"]:not([class*="thumb"]):not([class*="thumbnail"]) img',
+      // More generic Rightmove gallery selectors
+      '[data-testid*="gallery"] img',
+      '[data-testid*="media"] img',
+      '[class*="PropertyImages"] img',
+      '[class*="propertyImages"] img',
+      '[class*="Gallery"] img',
+      '[class*="MediaGallery"] img',
+      // High-quality Rightmove CDN images only
+      'img[src*="media.rightmove"][src*="/max/"]',
+      'img[src*="media.rightmove"][src*="/640x"]',
+      'img[src*="media.rightmove"][src*="/480x"]',
+      'img[data-src*="media.rightmove"][data-src*="/max/"]',
+      'img[data-src*="media.rightmove"][data-src*="/640x"]',
+      // Any Rightmove media images (with quality filtering applied later)
+      'img[src*="media.rightmove"]',
+      'img[data-src*="media.rightmove"]',
+      'img[src*="rightmove-static"]',
+      'img[data-src*="rightmove-static"]',
+      // Fallback for other property images (but not thumbnails)
+      'img[alt*="bedroom"]:not([class*="thumb"])',
+      'img[alt*="kitchen"]:not([class*="thumb"])',
+      'img[alt*="living"]:not([class*="thumb"])',
+      'img[alt*="bathroom"]:not([class*="thumb"])'
+    ];
     
+    // Extract address information first
+    for (const selector of addressSelectors) {
+      const addressElement = $(selector);
+      if (addressElement.length > 0) {
+        const addressText = addressElement.text().trim();
+        // Check if this looks like an address (contains letters and not just price)
+        if (addressText && 
+            !addressText.includes('£') && 
+            addressText.length > 5 &&
+            /[a-zA-Z]/.test(addressText) &&
+            !addressText.toLowerCase().includes('rightmove') &&
+            !addressText.toLowerCase().includes('property') &&
+            !addressText.toLowerCase().includes('for sale')) {
+          extractedText += `Address: ${addressText}\n`;
+          break;
+        }
+      }
+    }
+
     // Extract price information
     for (const selector of priceSelectors) {
       const priceElement = $(selector);
@@ -127,6 +191,277 @@ async function scrapeRightmovePage(url: string): Promise<string> {
           extractedText += `Bedrooms: ${bedroomText}\n`;
         }
       }
+    }
+
+    // Extract image URLs from gallery with quality filtering
+    const imageUrls: string[] = [];
+    const seenUrls = new Set<string>();
+    const seenBaseUrls = new Set<string>(); // Track base URLs to avoid different sizes of same image
+    
+    // Helper function to extract base URL (remove size parameters)
+    const getBaseUrl = (url: string): string => {
+      return url.replace(/\/\d+x\d+\//, '/').replace(/_\d+x\d+\./, '.').replace(/\?.*$/, '');
+    };
+    
+    // Helper function to check if image is acceptable quality
+    const isAcceptableQuality = (url: string): boolean => {
+      // Only allow actual property images with the standard Rightmove IMG pattern
+      const isPropertyImage = /_IMG_\d{2}_\d{4}\.(jpe?g|png|webp)$/i.test(url) || // Standard pattern: _IMG_00_0000.jpeg
+                              /_IMG_\d{1,2}_\d{1,4}\.(jpe?g|png|webp)$/i.test(url) || // Variations: _IMG_0_000.jpeg
+                              (url.includes('_IMG_') && /\.(jpe?g|png|webp)$/i.test(url) && !url.includes('_max_')); // General IMG pattern without thumbnails
+      
+      // Additional check to exclude any remaining low-res patterns
+      const isNotThumbnail = !url.includes('_thumb') &&
+                             !url.includes('_small') &&
+                             !url.includes('/thumb') &&
+                             !url.includes('_max_') &&
+                             !url.includes('_bp_') &&  // Brand partner
+                             !url.includes('_ad_') &&  // Advertisement
+                             !url.includes('_mpu_') && // Medium rectangle ads
+                             !url.includes('_pd_');   // Promotional/display ads
+      
+      return isPropertyImage && isNotThumbnail;
+    };
+    
+    for (const selector of imageSelectors) {
+      $(selector).each((_, img) => {
+        let src = $(img).attr('src') || $(img).attr('data-src') || $(img).attr('data-lazy-src');
+        
+        if (src) {
+          // Handle relative URLs
+          if (src.startsWith('//')) {
+            src = 'https:' + src;
+          } else if (src.startsWith('/')) {
+            src = 'https://www.rightmove.co.uk' + src;
+          }
+          
+          // Get base URL for duplicate checking
+          const baseUrl = getBaseUrl(src);
+          
+          // Filter criteria
+          const isRightmoveMedia = src.includes('media.rightmove') || src.includes('rightmove-static');
+          const isAcceptableImage = isAcceptableQuality(src);
+          const isNotDuplicate = !seenUrls.has(src) && !seenBaseUrls.has(baseUrl);
+          const isNotSystemImage = !src.includes('logo') && 
+                                  !src.includes('icon') && 
+                                  !src.includes('avatar') &&
+                                  !src.includes('agent') &&
+                                  !src.includes('brand') &&
+                                  !src.includes('watermark') &&
+                                  !src.includes('overlay') &&
+                                  !src.includes('marker') &&
+                                  !src.includes('assets/') &&
+                                  !src.includes('static/images/') &&
+                                  !src.includes('banner') &&
+                                  !src.includes('badge') &&
+                                  !src.includes('stamp') &&
+                                  !src.includes('/text/') &&
+                                  !src.includes('_text_') &&
+                                  !src.includes('/UI/') &&
+                                  !src.includes('ui-') &&
+                                  !src.includes('branding') &&
+                                  !src.includes('clarke') &&
+                                  !src.includes('peter') &&
+                                  !src.includes('_bp_') && // Brand partner images
+                                  !src.includes('/bp_') && // Brand partner images
+                                  !src.includes('_ad_') && // Advertisement images
+                                  !src.includes('/ad_') && // Advertisement images
+                                  !src.includes('_mpu_') && // Medium rectangle ads
+                                  !src.includes('_pd_') && // Promotional/display ads
+                                  !src.includes('_promo_') && // Promotional content
+                                  !src.includes('_sponsor_') && // Sponsored content
+                                  !/\/[A-Z]{2,}_/.test(src) && // Pattern like /BRA_something (branding codes)
+                                  !/estate[-_]agent/i.test(src) &&
+                                  !/agent[-_]photo/i.test(src) &&
+                                  !/\d+_bp_/.test(src) && // Timestamp + brand partner pattern
+                                  !/\d+_ad_/.test(src); // Timestamp + ad pattern
+          
+          if (isRightmoveMedia && isAcceptableImage && isNotDuplicate && isNotSystemImage && imageUrls.length < 20) {
+            imageUrls.push(src);
+            seenUrls.add(src);
+            seenBaseUrls.add(baseUrl);
+          }
+        }
+      });
+      if (imageUrls.length >= 20) break;
+    }
+    
+    // Also try to extract high-quality images from JSON data or script tags
+    $('script').each((_, script) => {
+      const scriptContent = $(script).html() || '';
+      // Look for high-quality image URLs in script content
+      const imagePatterns = [
+        /https?:\/\/[^"'\s]*media\.rightmove[^"'\s]*\/\d{3,4}x\d{3,4}\/[^"'\s]*\.(jpg|jpeg|png|webp)/gi,
+        /https?:\/\/[^"'\s]*media\.rightmove[^"'\s]*\/max\/[^"'\s]*\.(jpg|jpeg|png|webp)/gi,
+        /https?:\/\/[^"'\s]*rightmove-static[^"'\s]*\/\d{3,4}x\d{3,4}\/[^"'\s]*\.(jpg|jpeg|png|webp)/gi
+      ];
+      
+      imagePatterns.forEach(pattern => {
+        const matches = scriptContent.match(pattern);
+        if (matches) {
+          matches.forEach(match => {
+            let url = match.replace(/['"]/g, ''); // Remove quotes
+            if (url.startsWith('//')) {
+              url = 'https:' + url;
+            }
+            const baseUrl = getBaseUrl(url);
+            if (isAcceptableQuality(url) && !seenUrls.has(url) && !seenBaseUrls.has(baseUrl) && imageUrls.length < 20) {
+              imageUrls.push(url);
+              seenUrls.add(url);
+              seenBaseUrls.add(baseUrl);
+            }
+          });
+        }
+      });
+
+      // Extract images from PAGE_MODEL JSON data (Rightmove's main data structure)
+      if (scriptContent.includes('window.PAGE_MODEL') || scriptContent.includes('propertyData')) {
+        try {
+          // Try to extract the images array from the JSON structure
+          const pageModelMatch = scriptContent.match(/window\.PAGE_MODEL\s*=\s*({.+?});?\s*$/s);
+          if (pageModelMatch) {
+            const pageModel = JSON.parse(pageModelMatch[1]);
+            if (pageModel.propertyData && pageModel.propertyData.images) {
+              pageModel.propertyData.images.forEach((image: any) => {
+                if (image.url) {
+                  let url = image.url;
+                  if (url.startsWith('//')) {
+                    url = 'https:' + url;
+                  }
+                  const baseUrl = getBaseUrl(url);
+                  if (!seenUrls.has(url) && !seenBaseUrls.has(baseUrl) && imageUrls.length < 20) {
+                    imageUrls.push(url);
+                    seenUrls.add(url);
+                    seenBaseUrls.add(baseUrl);
+                  }
+                  
+                  // Also try to get higher resolution versions
+                  if (image.resizedImageUrls) {
+                    Object.values(image.resizedImageUrls).forEach((resizedUrl: any) => {
+                      if (resizedUrl && typeof resizedUrl === 'string') {
+                        let url = resizedUrl;
+                        if (url.startsWith('//')) {
+                          url = 'https:' + url;
+                        }
+                        const baseUrl = getBaseUrl(url);
+                        if (isAcceptableQuality(url) && !seenUrls.has(url) && !seenBaseUrls.has(baseUrl) && imageUrls.length < 20) {
+                          imageUrls.push(url);
+                          seenUrls.add(url);
+                          seenBaseUrls.add(baseUrl);
+                        }
+                      }
+                    });
+                  }
+                }
+              });
+            }
+          }
+          
+          // Also try window.adInfo alternative data structure
+          const adInfoMatch = scriptContent.match(/window\.adInfo\s*=\s*({.+?});?\s*$/s);
+          if (adInfoMatch) {
+            const adInfo = JSON.parse(adInfoMatch[1]);
+            if (adInfo.propertyData && adInfo.propertyData.images) {
+              adInfo.propertyData.images.forEach((image: any) => {
+                if (image.url) {
+                  let url = image.url;
+                  if (url.startsWith('//')) {
+                    url = 'https:' + url;
+                  }
+                  const baseUrl = getBaseUrl(url);
+                  if (!seenUrls.has(url) && !seenBaseUrls.has(baseUrl) && imageUrls.length < 20) {
+                    imageUrls.push(url);
+                    seenUrls.add(url);
+                    seenBaseUrls.add(baseUrl);
+                  }
+                }
+              });
+            }
+          }
+
+          // Alternative: look for images array directly in the script content
+          const imagesArrayMatch = scriptContent.match(/"images":\s*(\[[\s\S]*?\])/);
+          if (imagesArrayMatch) {
+            try {
+              const imagesArray = JSON.parse(imagesArrayMatch[1]);
+              if (Array.isArray(imagesArray)) {
+                imagesArray.forEach((image: any) => {
+                  if (image.url) {
+                    let url = image.url;
+                    if (url.startsWith('//')) {
+                      url = 'https:' + url;
+                    }
+                    const baseUrl = getBaseUrl(url);
+                    if (!seenUrls.has(url) && !seenBaseUrls.has(baseUrl) && imageUrls.length < 20) {
+                      imageUrls.push(url);
+                      seenUrls.add(url);
+                      seenBaseUrls.add(baseUrl);
+                    }
+                  }
+                });
+              }
+            } catch (e) {
+              // Ignore parsing errors for this fallback
+            }
+          }
+        } catch (e) {
+          // Continue with other methods if JSON parsing fails
+          console.log('Failed to parse PAGE_MODEL JSON, continuing with other methods');
+        }
+      }
+    });
+
+    // Look for high-quality images in data attributes
+    $('[data-src], [data-lazy-src], [data-original]').each((_, element) => {
+      const dataSrc = $(element).attr('data-src') || $(element).attr('data-lazy-src') || $(element).attr('data-original');
+      if (dataSrc && (dataSrc.includes('media.rightmove') || dataSrc.includes('rightmove-static'))) {
+        let src = dataSrc;
+        if (src.startsWith('//')) {
+          src = 'https:' + src;
+        }
+        const baseUrl = getBaseUrl(src);
+        if (isAcceptableQuality(src) && !seenUrls.has(src) && !seenBaseUrls.has(baseUrl) && imageUrls.length < 20) {
+          imageUrls.push(src);
+          seenUrls.add(src);
+          seenBaseUrls.add(baseUrl);
+        }
+      }
+    });
+    
+    // Remove duplicates and prioritize gallery images
+    const uniqueImages = [...new Set(imageUrls)];
+    
+    // If no images found, try a more aggressive search as fallback
+    if (uniqueImages.length === 0) {
+      console.log('No gallery images found, trying fallback search...');
+      $('img').each((_, img) => {
+        let src = $(img).attr('src') || $(img).attr('data-src') || $(img).attr('data-lazy-src');
+        if (src) {
+          // Handle relative URLs
+          if (src.startsWith('//')) {
+            src = 'https:' + src;
+          } else if (src.startsWith('/')) {
+            src = 'https://www.rightmove.co.uk' + src;
+          }
+          
+          // Only Rightmove media images, basic filtering
+          if ((src.includes('media.rightmove') || src.includes('rightmove-static')) &&
+              !src.includes('logo') && 
+              !src.includes('icon') && 
+              !src.includes('agent') &&
+              !seenUrls.has(src) &&
+              imageUrls.length < 15) {
+            imageUrls.push(src);
+            seenUrls.add(src);
+          }
+        }
+      });
+    }
+    
+    const finalImages = imageUrls.length > 0 ? imageUrls : uniqueImages;
+    
+    if (finalImages.length > 0) {
+      extractedText += `Images: ${finalImages.join(', ')}\n`;
     }
     
     // Look for all elements containing price patterns
@@ -229,7 +564,7 @@ Property Content:
 {content}
 
 Please analyze the content and extract the following information:
-1. Address - full property address
+1. Address - full property address (look for street name, area, postcode format like "Main Street, Tiddington, CV37")
 2. Price - property price in GBP (numerical value only, no £ symbol)
 3. Square meters - if only sq ft is available, convert to sq m (1 sq ft = 0.092903 sq m)
 4. Bedrooms - number of bedrooms (look for patterns like "BEDROOMS: 2", "Two Bedrooms", "2 bedroom", "2 bed")
@@ -254,7 +589,8 @@ Return the response in the following JSON format:
   "bathrooms": number,
   "property_type": "detached" | "semi-detached" | "terraced" | "flat" | "maisonette" | "bungalow" | "cottage" | "townhouse" | null,
   "tenure": "freehold" | "leasehold" | "shared-ownership" | "commonhold" | null,
-  "condition": "ready-to-move" | "renovation" | "structural-project" | null
+  "condition": "ready-to-move" | "renovation" | "structural-project" | null,
+  "images": ["string"] | null
 }
 
 Extract only the information that can be clearly determined from the content.`;
@@ -337,6 +673,9 @@ function buildPropertyData(extractedData: any): PropertyData {
       monthlyPayments: calculateMortgagePayments(extractedData.price || 0),
     },
     
+    // Images
+    images: extractedData.images || [],
+
     // Metadata
     lastUpdated: now,
     dataSource: "rightmove-scraping",
@@ -436,8 +775,15 @@ export async function POST(req: NextRequest) {
     let extractedData;
     try {
       extractedData = JSON.parse(text);
+      
+      // Ensure images is an array if it exists
+      if (extractedData.images && !Array.isArray(extractedData.images)) {
+        extractedData.images = [];
+      }
     } catch (e) {
       // If parsing fails, try to extract basic information from scraped content
+      const addressMatch = scrapedContent.match(/Address:\s*(.+)/i);
+      const imagesMatch = scrapedContent.match(/Images:\s*(.+)/i);
       const priceMatch = scrapedContent.match(/£([\d,]+)/);
       const sqftMatch = scrapedContent.match(/(\d+[\s,]*)\s*sq\s*ft/i);
       const sqmMatch = scrapedContent.match(/(\d+)\s*(sq\s*m|sqm)/i);
@@ -517,16 +863,19 @@ export async function POST(req: NextRequest) {
         sqm = Math.round(parseInt(sqftMatch[1].replace(/,/g, '')) * 0.092903);
       }
       
-              extractedData = {
-          address: "Address extraction failed",
-          price: priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : null,
-          square_meters: sqm,
-          bedrooms: bedrooms,
-          bathrooms: bathrooms,
-          property_type: null,
-          tenure: null,
-          condition: null
-        };
+                    const images = imagesMatch ? imagesMatch[1].split(', ').map(url => url.trim()) : [];
+
+      extractedData = {
+        address: addressMatch ? addressMatch[1].trim() : "Address extraction failed",
+        price: priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : null,
+        square_meters: sqm,
+        bedrooms: bedrooms,
+        bathrooms: bathrooms,
+        property_type: null,
+        tenure: null,
+        condition: null,
+        images: images
+      };
     }
 
     // Build full PropertyData object
