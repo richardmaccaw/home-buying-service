@@ -31,6 +31,13 @@ export default function HomePage() {
     <div className="max-w-4xl mx-auto space-y-8">
       {/* Hero Section */}
       <div className="text-center space-y-4">
+        <div className="mb-6">
+          <img
+            src="/images/hero-image.png"
+            alt="Professional property analysis team"
+            className="w-full max-w-2xl mx-auto rounded-lg shadow-lg"
+          />
+        </div>
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
           UK Property <span className="text-brand">Analysis</span>
         </h1>
