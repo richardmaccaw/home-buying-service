@@ -1,8 +1,4 @@
 import { PropertyData } from "@/lib/types";
-import { fetchHousemetric } from "./housemetric";
-import { fetchZoopla } from "./zoopla";
-import { fetchLandRegistry } from "./landRegistry";
-import { fetchAccuval } from "./accuval";
 
 function hashQuery(query: string): string {
   // Simple hash function for cache key
@@ -15,74 +11,79 @@ function hashQuery(query: string): string {
   return hash.toString();
 }
 
+/**
+ * Fetch property data from our structured output API endpoint
+ */
+async function fetchPropertyFromAPI(url: string): Promise<PropertyData> {
+  const response = await fetch('/api/chat/structured_output', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messages: [
+        {
+          role: 'user',
+          content: url
+        }
+      ]
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+
+  const propertyData = await response.json();
+  return propertyData;
+}
+
 export async function getAggregatedPropertyData(
   query: string,
 ): Promise<PropertyData> {
   // Check cache first (24h expiry)
   const cacheKey = hashQuery(query);
-  const cached = localStorage.getItem("propCache");
-  const cache = cached ? JSON.parse(cached) : {};
+  
+  // Only use cache in browser environment
+  let cache: Record<string, any> = {};
+  if (typeof window !== 'undefined') {
+    const cached = localStorage.getItem("propCache");
+    cache = cached ? JSON.parse(cached) : {};
 
-  if (
-    cache[cacheKey] &&
-    Date.now() - cache[cacheKey].timestamp < 24 * 60 * 60 * 1000
-  ) {
-    return cache[cacheKey].data;
+    if (
+      cache[cacheKey] &&
+      Date.now() - cache[cacheKey].timestamp < 24 * 60 * 60 * 1000
+    ) {
+      return cache[cacheKey].data;
+    }
   }
 
-  // Fetch all data in parallel
-  const [housemetricRes, zooplaRes, landRegistryRes, accuvalRes] =
-    await Promise.all([
-      fetchHousemetric(query),
-      fetchZoopla(query),
-      fetchLandRegistry(query),
-      fetchAccuval(query),
-    ]);
-
-  if (
-    !housemetricRes.success ||
-    !zooplaRes.success ||
-    !landRegistryRes.success ||
-    !accuvalRes.success
-  ) {
-    throw new Error("Failed to fetch property data");
+  // Validate that the query is a Rightmove URL
+  if (!query.includes('rightmove.co.uk')) {
+    throw new Error('Please provide a valid Rightmove property URL');
   }
 
-  // Normalize into PropertyData interface
-  const propertyData: PropertyData = {
-    address: housemetricRes.data.address,
-    price: housemetricRes.data.price,
-    pricePerSqM: housemetricRes.data.pricePerSqM,
-    bedrooms: housemetricRes.data.bedrooms,
-    bathrooms: housemetricRes.data.bathrooms,
-    tenure: housemetricRes.data.tenure,
-    marketTime: housemetricRes.data.marketTime,
-    valueForMoney: housemetricRes.data.valueForMoney,
-    condition: housemetricRes.data.condition,
+  try {
+    // Fetch property data from our API
+    const propertyData = await fetchPropertyFromAPI(query);
 
-    indices: {
-      zoopla: zooplaRes.data.zooplaIndex,
-      ons: landRegistryRes.data.onsIndex,
-      acadata: accuvalRes.data.acadataIndex,
-    },
+    // Cache the result (only in browser)
+    if (typeof window !== 'undefined') {
+      cache[cacheKey] = {
+        data: propertyData,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("propCache", JSON.stringify(cache));
+    }
 
-    history: landRegistryRes.data.history,
-
-    listingDelta: accuvalRes.data.listingDelta,
-
-    localArea: zooplaRes.data.localArea,
-
-    costs: accuvalRes.data.costs,
-
-    mortgage: accuvalRes.data.mortgage,
-  };
-
-  // Cache the result
-  cache[cacheKey] = {
-    data: propertyData,
-    timestamp: Date.now(),
-  };
-  localStorage.setItem("propCache", JSON.stringify(cache));
-
-  return propertyData;
+    return propertyData;
+  } catch (error) {
+    console.error('Error fetching property data:', error);
+    throw new Error(
+      error instanceof Error 
+        ? error.message 
+        : 'Failed to fetch property data from the provided URL'
+    );
+  }
 }
