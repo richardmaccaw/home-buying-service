@@ -31,16 +31,17 @@ export default function HomePage() {
   return (
     <>
       {/* Full Width Hero Image with Blur Effect - completely outside container */}
-      <div className="relative w-full -mt-8 -mx-4 mb-8 overflow-hidden">
+      <div className="relative w-screen h-[70vh] -mt-8 -ml-[calc(50vw-50%)] -mr-[calc(50vw-50%)] mb-8">
         <Image
           src="/images/hero-image.png"
           alt="Professional property analysis team"
           fill
-          className="w-full h-[60vh] object-cover"
+          className="object-cover"
           priority
+          sizes="100vw"
         />
         {/* Gradient overlay for blur effect at bottom */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/80"></div>
 
         {/* Content overlay */}
         <div className="absolute inset-0 flex items-end justify-center pb-16">
