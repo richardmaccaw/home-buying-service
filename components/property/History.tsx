@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useProperty } from "@/lib/context/PropertyContext";
-import { TrendingUp, Clock, Minus } from "lucide-react";
+import { TrendingUp, Minus } from "lucide-react";
 
 export function History() {
   const { data, loading } = useProperty();
@@ -69,17 +69,6 @@ export function History() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Time on market */}
-        <div>
-          <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-blue-500" />
-            Time on market
-          </h4>
-          <Badge variant="secondary" className="text-sm">
-            {data.marketTime} days
-          </Badge>
         </div>
 
         {/* Price reductions */}

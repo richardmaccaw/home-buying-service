@@ -78,6 +78,9 @@ export class ScrapingService {
     // Extract bedroom information
     extractedText += this.extractBedrooms($);
     
+    // Extract price reduction information
+    extractedText += this.extractPriceReductions($);
+    
     // Extract image URLs
     const images = this.extractImages($);
     if (images.length > 0) {
@@ -208,6 +211,55 @@ export class ScrapingService {
       }
     }
     return '';
+  }
+
+  private extractPriceReductions($: cheerio.CheerioAPI): string {
+    const dateSelectors = [
+      'span:contains("Reduced on")',
+      'div:contains("Reduced on")',
+      'p:contains("Reduced on")',
+      'span:contains("Added on")',
+      'div:contains("Added on")',
+      'p:contains("Added on")',
+      '[class*="reduced"]',
+      '[class*="price-change"]',
+      '[data-testid*="reduced"]',
+      '[data-testid*="price-change"]',
+      'span:contains("Price reduced")',
+      'div:contains("Price reduced")',
+      'span:contains("reduced")',
+      'div:contains("reduced")',
+      'span:contains("added")',
+      'div:contains("added")'
+    ];
+
+    for (const selector of dateSelectors) {
+      const dateElement = $(selector);
+      if (dateElement.length > 0) {
+        const dateText = dateElement.text().trim();
+        if (dateText && (dateText.toLowerCase().includes('reduced') || dateText.toLowerCase().includes('added'))) {
+          return `Price/Listing Date: ${dateText}\n`;
+        }
+      }
+    }
+
+    // Also search in all text for both "Reduced on DD/MM/YYYY" and "Added on DD/MM/YYYY" patterns
+    const allText = $('body').text();
+    const reducedPattern = /Reduced on (\d{1,2}\/\d{1,2}\/\d{4})/gi;
+    const addedPattern = /Added on (\d{1,2}\/\d{1,2}\/\d{4})/gi;
+    
+    const reducedMatch = allText.match(reducedPattern);
+    const addedMatch = allText.match(addedPattern);
+    
+    let result = '';
+    if (reducedMatch && reducedMatch.length > 0) {
+      result += `Price Reduction: ${reducedMatch[0]}\n`;
+    }
+    if (addedMatch && addedMatch.length > 0) {
+      result += `Listing Date: ${addedMatch[0]}\n`;
+    }
+    
+    return result;
   }
 
   private extractImages($: cheerio.CheerioAPI): string[] {

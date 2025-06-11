@@ -16,6 +16,8 @@ Please analyze the content and extract the following information:
 6. Property type - detached, semi-detached, terraced, flat, maisonette, bungalow, cottage, townhouse
 7. Tenure - freehold, leasehold, shared-ownership, commonhold
 8. Property condition - based on description: "ready-to-move", "renovation", "structural-project"
+9. Listing date - look for "Added on DD/MM/YYYY" patterns in the content
+10. Price reduction date - look for "Reduced on DD/MM/YYYY" patterns in the content
 
 IMPORTANT EXTRACTION RULES:
 - Extract only numerical values for price and measurements
@@ -34,6 +36,8 @@ Return the response in the following JSON format:
   "property_type": "detached" | "semi-detached" | "terraced" | "flat" | "maisonette" | "bungalow" | "cottage" | "townhouse" | null,
   "tenure": "freehold" | "leasehold" | "shared-ownership" | "commonhold" | null,
   "condition": "ready-to-move" | "renovation" | "structural-project" | null,
+  "listing_date": "string (DD/MM/YYYY format)" | null,
+  "price_reduction_date": "string (DD/MM/YYYY format)" | null,
   "images": ["string"] | null
 }
 
@@ -132,17 +136,25 @@ Extract only the information that can be clearly determined from the content.`;
     }
     
     const images = imagesMatch ? imagesMatch[1].split(', ').map(url => url.trim()) : [];
+    
+    // Extract listing and price reduction dates
+    const listingDateMatch = content.match(/Listing Date:\s*Added on (\d{1,2}\/\d{1,2}\/\d{4})/i) ||
+                            content.match(/Added on (\d{1,2}\/\d{1,2}\/\d{4})/i);
+    const priceReductionMatch = content.match(/Price Reduction:\s*Reduced on (\d{1,2}\/\d{1,2}\/\d{4})/i) ||
+                               content.match(/Reduced on (\d{1,2}\/\d{1,2}\/\d{4})/i);
 
-    return {
-      address: addressMatch ? addressMatch[1].trim() : "Address extraction failed",
-      price: priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : null,
-      square_meters: sqm,
-      bedrooms: bedrooms,
-      bathrooms: bathrooms,
-      property_type: null,
-      tenure: null,
-      condition: null,
-      images: images
-    };
+          return {
+        address: addressMatch ? addressMatch[1].trim() : "Address extraction failed",
+        price: priceMatch ? parseInt(priceMatch[1].replace(/,/g, '')) : null,
+        square_meters: sqm,
+        bedrooms: bedrooms,
+        bathrooms: bathrooms,
+        property_type: null,
+        tenure: null,
+        condition: null,
+        listing_date: listingDateMatch ? listingDateMatch[1] : null,
+        price_reduction_date: priceReductionMatch ? priceReductionMatch[1] : null,
+        images: images
+      };
   }
 } 
