@@ -23,7 +23,7 @@ ANALYSIS STYLE:
 - Reference local area knowledge if relevant
 - End with a clear BUY/DON'T BUY recommendation
 
-Keep the response to 2-3 paragraphs maximum. Be engaging, authoritative, and memorable.`;
+Keep the response to 1 paragraph maximum. Be engaging, authoritative, and memorable.`;
 
 const ANALYSIS_TEMPLATE = `Based on the following property data, provide your brutally honest assessment of whether this property is worth buying:
 
@@ -103,59 +103,28 @@ export async function POST(req: NextRequest) {
     const response = await result.response;
     const analysis = response.text();
 
-    // Determine overall verdict and confidence
-    const lowerAnalysis = analysis.toLowerCase();
-    let overallVerdict = "neutral";
-    let confidence = 0.7;
-
-    if (lowerAnalysis.includes("buy") && !lowerAnalysis.includes("don't buy")) {
-      overallVerdict = "positive";
-      confidence = 0.85;
-    } else if (lowerAnalysis.includes("don't buy") || lowerAnalysis.includes("avoid") || lowerAnalysis.includes("walk away")) {
-      overallVerdict = "negative";
-      confidence = 0.85;
-    }
-
-    // Extract key insights based on the data
-    const keyInsights = [];
+    // Extract risk factors based on the data
     const riskFactors = [];
-    const recommendations = [];
 
     // Price analysis insights
     const avgValuation = (propertyData.indices.zoopla + propertyData.indices.ons + propertyData.indices.acadata) / 3;
     if (propertyData.price > avgValuation * 1.1) {
       riskFactors.push(`Property is priced ${Math.round(((propertyData.price / avgValuation) - 1) * 100)}% above average valuations`);
-    } else if (propertyData.price < avgValuation * 0.9) {
-      keyInsights.push(`Property is priced ${Math.round((1 - (propertyData.price / avgValuation)) * 100)}% below average valuations`);
     }
 
     // Growth analysis
-    if (propertyData.history.growthSinceLastSale > 30) {
-      keyInsights.push(`Strong growth of ${propertyData.history.growthSinceLastSale}% since last sale`);
-    } else if (propertyData.history.growthSinceLastSale < 10) {
+    if (propertyData.history.growthSinceLastSale < 10) {
       riskFactors.push(`Modest growth of only ${propertyData.history.growthSinceLastSale}% since last sale`);
     }
 
     // Value for money
-    if (propertyData.valueForMoney >= 8) {
-      keyInsights.push("Excellent value for money score");
-    } else if (propertyData.valueForMoney <= 5) {
+    if (propertyData.valueForMoney <= 5) {
       riskFactors.push("Below average value for money score");
-    }
-
-    // Recommendations
-    recommendations.push("Get a professional survey done before proceeding");
-    recommendations.push("Consider the total cost including SDLT and fees");
-    if (propertyData.condition === "renovation") {
-      recommendations.push("Factor in renovation costs for your budget");
     }
 
     return NextResponse.json({
       overallVerdict: analysis,
-      keyInsights,
-      recommendations,
       riskFactors,
-      confidence,
     }, { status: 200 });
 
   } catch (e: any) {
