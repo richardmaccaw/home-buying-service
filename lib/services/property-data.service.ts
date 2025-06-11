@@ -29,9 +29,11 @@ export class PropertyDataService {
       propertyType: extractedData.property_type || undefined,
       
       // Market metrics - estimated/default values
-      marketTime: 30, // Default 30 days
+      marketTime: this.calculateMarketTime(extractedData.listing_date),
       valueForMoney: 7.0, // Default score
       condition: extractedData.condition || "ready-to-move",
+      listingDate: extractedData.listing_date || undefined,
+      priceReductionDate: extractedData.price_reduction_date || undefined,
       
       // External valuations - use scraped price as base
       indices: {
@@ -150,6 +152,27 @@ export class PropertyDataService {
     if (monthlyRate === 0) return principal / termMonths;
     return principal * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
            (Math.pow(1 + monthlyRate, termMonths) - 1);
+  }
+
+  /**
+   * Calculate market time from listing date
+   */
+  private calculateMarketTime(listingDate?: string): number {
+    if (!listingDate) return 30; // Default 30 days
+
+    try {
+      // Parse DD/MM/YYYY format
+      const [day, month, year] = listingDate.split('/').map(num => parseInt(num));
+      const listingDateObj = new Date(year, month - 1, day); // month is 0-indexed
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - listingDateObj.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      return diffDays > 0 ? diffDays : 30; // Ensure positive number
+    } catch (error) {
+      console.error('Error calculating market time:', error);
+      return 30; // Default fallback
+    }
   }
 
   /**

@@ -228,7 +228,28 @@ export function History() {
                 {formatPrice(Math.abs(priceGrowth))}
               </p>
             </div>
-            <div>
+          </div>
+        </div>
+
+        {/* Time on market */}
+        <div>
+          <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-blue-500" />
+            Time on market
+          </h4>
+          <Badge variant="secondary" className="text-sm">
+            {data.marketTime} days
+          </Badge>
+        </div>
+
+        {/* Price reductions */}
+        {data.history.priceReductions.length > 0 && (
+          <div>
+            <h4 className="text-lg font-semibold mb-3 flex items-center gap-2">
+              <Minus className="h-5 w-5 text-red-500" />
+              Price reductions
+            </h4>
+            <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Annual growth rate
               </p>

@@ -15,6 +15,7 @@ import { PropertyImageHeader } from "@/components/property/PropertyImageHeader";
 import { CurrentValue } from "@/components/property/CurrentValue";
 import { IndicesTable } from "@/components/property/IndicesTable";
 import { History } from "@/components/property/History";
+import { TimeOnMarket } from "@/components/property/TimeOnMarket";
 import { ListingDelta } from "@/components/property/ListingDelta";
 import { LocalArea } from "@/components/property/LocalArea";
 import { PropertyAnalysis } from "../components/property/PropertyAnalysis";
