@@ -58,19 +58,19 @@ export function CurrentValue() {
     const match = data.address.match(/[A-Z]{1,2}\d{1,2}[A-Z]?/i);
     if (!match) return;
 
-    fetch('/api/area-average', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("/api/area-average", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ postcode: match[0] }),
     })
       .then((res) => (res.ok ? res.json() : Promise.reject(res)))
       .then((json) => {
-        if (typeof json.areaAverage === 'number') {
+        if (typeof json.areaAverage === "number") {
           setAreaAverage(json.areaAverage);
         }
       })
       .catch((err) => {
-        console.error('Failed to fetch area average', err);
+        console.error("Failed to fetch area average", err);
       });
   }, [data]);
 
@@ -108,13 +108,38 @@ export function CurrentValue() {
                 {formatPrice(data.pricePerSqM)}/m²
               </span>
             </div>
-            <Progress
-              value={Math.min(
-                (data.pricePerSqM / (areaAvg * 1.5)) * 100,
-                100,
-              )}
-              className="h-2"
-            />
+
+            {/* Gradient bar styled like the Time on the market chart */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                Good value
+              </span>
+              <div className="relative flex-1 py-4">
+                <div className="h-3 bg-gradient-to-r from-green-500 via-yellow-400 to-red-500 rounded-full"></div>
+                <div
+                  className="absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                  style={{
+                    left: `${Math.min(
+                      (data.pricePerSqM / (areaAvg * 1.5)) * 100,
+                      100,
+                    )}%`,
+                  }}
+                >
+                  <div
+                    className={`${
+                      percentageVsAverage > 0 ? "bg-red-500" : "bg-green-500"
+                    } text-white px-3 py-2 rounded-lg font-semibold text-sm shadow-lg`}
+                  >
+                    {percentageVsAverage > 0 ? "+" : ""}
+                    {(percentageVsAverage ?? 0).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                Overpriced
+              </span>
+            </div>
+
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>Area average</span>
               <span>{formatPrice(areaAvg)}/m²</span>

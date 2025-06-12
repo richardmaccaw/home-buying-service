@@ -7,7 +7,7 @@ import { TrendingUp, Clock, Minus } from "lucide-react";
 
 export function History() {
   const { data, loading } = useProperty();
-
+  
   if (loading || !data) {
     return null;
   }
@@ -49,10 +49,10 @@ export function History() {
             <div>
               <p className="text-sm text-muted-foreground">Last known sale</p>
               <p className="text-lg font-semibold">
-                {formatPrice(data.history.lastSalePrice)}
+                {formatPrice(data!.history.lastSalePrice)}
               </p>
               <p className="text-sm text-muted-foreground">
-                {formatDate(data.history.lastSaleDate)}
+                {formatDate(data!.history.lastSaleDate)}
               </p>
             </div>
             <div>
