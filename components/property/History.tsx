@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useProperty } from "@/lib/context/PropertyContext";
 import { TrendingUp, Clock, Minus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   LineChart,
   Line,
@@ -16,11 +17,6 @@ import {
 
 export function History() {
   const { data, loading } = useProperty();
-
-  if (loading || !data) {
-    return null;
-  }
-
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("en-GB", {
       style: "currency",
@@ -46,20 +42,22 @@ export function History() {
 
   // Prepare chart data from the property history
   const chartData = React.useMemo(() => {
+    if (!data) return [] as any[];
+    const propertyHistory = data!.history;
     const points = [];
 
     // Add the last sale as the starting point
-    if (data.history.lastSaleDate && data.history.lastSalePrice) {
+    if (propertyHistory.lastSaleDate && propertyHistory.lastSalePrice) {
       points.push({
-        date: data.history.lastSaleDate,
-        price: data.history.lastSalePrice,
-        displayDate: formatShortDate(data.history.lastSaleDate),
+        date: propertyHistory.lastSaleDate,
+        price: propertyHistory.lastSalePrice,
+        displayDate: formatShortDate(propertyHistory.lastSaleDate),
         type: "Sale",
       });
     }
 
     // Add price reductions in chronological order
-    const sortedReductions = [...data.history.priceReductions].sort(
+    const sortedReductions = [...propertyHistory.priceReductions].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 
@@ -111,6 +109,9 @@ export function History() {
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
   }, [data]);
+  if (loading || !data) {
+    return null;
+  }
 
   // Calculate growth percentage
   const growthPercentage = data.history.growthSinceLastSale ?? 0;
@@ -205,10 +206,10 @@ export function History() {
             <div>
               <p className="text-sm text-muted-foreground">Last known sale</p>
               <p className="text-lg font-semibold">
-                {formatPrice(data.history.lastSalePrice)}
+                {formatPrice(data!.history.lastSalePrice)}
               </p>
               <p className="text-sm text-muted-foreground">
-                {formatDate(data.history.lastSaleDate)}
+                {formatDate(data!.history.lastSaleDate)}
               </p>
             </div>
             <div>
@@ -260,7 +261,7 @@ export function History() {
                 {(() => {
                   const daysSinceLastSale = Math.floor(
                     (new Date().getTime() -
-                      new Date(data.history.lastSaleDate).getTime()) /
+                      new Date(data!.history.lastSaleDate).getTime()) /
                       (1000 * 60 * 60 * 24),
                   );
                   const years = daysSinceLastSale / 365.25;
@@ -272,7 +273,7 @@ export function History() {
               <p className="text-sm text-muted-foreground">per year</p>
             </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
