@@ -14,8 +14,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <title>AI Property Police - No Estate Agent Waffle, No Mercy</title>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/images/favicon.ico" />
+        <link rel="icon" type="image/png" href="/images/Ross.png" />
+        <link rel="shortcut icon" href="/images/Ross.png" />
         <meta
           name="description"
           content="Our crack squad of AI Property Police combs through the photos, floorplans and sold-price data, exposing hidden flaws and telling you what the place is really worth—no estate-agent waffle, no mercy."
@@ -28,7 +28,7 @@ export default function RootLayout({
           property="og:description"
           content="Our crack squad of AI Property Police combs through the photos, floorplans and sold-price data, exposing hidden flaws and telling you what the place is really worth—no estate-agent waffle, no mercy."
         />
-        <meta property="og:image" content="/images/og-image.png" />
+        <meta property="og:image" content="/images/Ross.png" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
           name="twitter:title"
@@ -38,7 +38,7 @@ export default function RootLayout({
           name="twitter:description"
           content="Our crack squad of AI Property Police combs through the photos, floorplans and sold-price data, exposing hidden flaws and telling you what the place is really worth—no estate-agent waffle, no mercy."
         />
-        <meta name="twitter:image" content="/images/og-image.png" />
+        <meta name="twitter:image" content="/images/Ross.png" />
       </head>
       <body className={publicSans.className}>
         <NuqsAdapter>
